@@ -11,5 +11,19 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'dnd-vendor': ['react-dnd', 'react-dnd-html5-backend'],
+          'utils': ['axios', 'react-icons']
+        }
+      }
+    }
   }
 })
