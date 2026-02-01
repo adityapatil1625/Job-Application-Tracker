@@ -1,19 +1,8 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist",
-        "buildCommand": "npm run build"
-      }
-    },
-    {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "installCommand": "cd frontend && npm install && cd ../backend && npm install",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -21,19 +10,20 @@
     },
     {
       "src": "/assets/(.*)",
-      "dest": "frontend/dist/assets/$1"
+      "dest": "/assets/$1"
     },
     {
       "src": "/favicon.ico",
-      "dest": "frontend/dist/favicon.ico"
-    },
-    {
-      "src": "/index.html",
-      "dest": "frontend/dist/index.html"
+      "dest": "/favicon.ico"
     },
     {
       "src": "/.*",
-      "dest": "frontend/dist/index.html"
+      "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "backend/server.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
