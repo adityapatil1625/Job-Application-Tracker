@@ -1,0 +1,93 @@
+### Job Application Tracker API Tests
+### Use REST Client extension in VS Code to run these
+
+### Health Check
+GET http://localhost:5000
+
+###
+
+### Register User
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Aditya Patil",
+  "email": "aditya@example.com",
+  "password": "password123"
+}
+
+###
+
+### Login User
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "aditya@example.com",
+  "password": "password123"
+}
+
+###
+
+### Get Current User (Replace TOKEN with your JWT from login)
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### Create Job Application (Replace TOKEN)
+POST http://localhost:5000/api/jobs
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "company": "Google",
+  "role": "Software Engineer",
+  "link": "https://careers.google.com/jobs/results/123456",
+  "location": "Mountain View, CA",
+  "appliedDate": "2026-01-15",
+  "status": "Applied",
+  "notes": "Applied through referral from John"
+}
+
+###
+
+### Get All Jobs (Replace TOKEN)
+GET http://localhost:5000/api/jobs
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### Get Job Stats (Replace TOKEN)
+GET http://localhost:5000/api/jobs/stats
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### Filter Jobs by Status (Replace TOKEN)
+GET http://localhost:5000/api/jobs?status=Interview
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### Search Jobs (Replace TOKEN)
+GET http://localhost:5000/api/jobs?search=Google
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### Update Job Application (Replace TOKEN and JOB_ID)
+PUT http://localhost:5000/api/jobs/JOB_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "Interview",
+  "notes": "Phone screen scheduled for Feb 5th"
+}
+
+###
+
+### Delete Job Application (Replace TOKEN and JOB_ID)
+DELETE http://localhost:5000/api/jobs/JOB_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
