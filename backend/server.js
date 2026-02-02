@@ -26,19 +26,31 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('../frontend/dist'));
+}
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/interviews', require('./routes/interviewRoutes'));
 
 // Health check route
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ 
     message: 'Job Application Tracker API',
     version: '1.0.0',
     status: 'Running'
   });
 });
+
+// SPA fallback - serve index.html for all non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile('../frontend/dist/index.html', { root: __dirname });
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
