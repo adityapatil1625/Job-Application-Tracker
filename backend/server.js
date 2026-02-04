@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -42,9 +44,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve frontend static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('../frontend/dist'));
+// Serve frontend static files in production (only if built assets exist)
+const distPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+if (process.env.NODE_ENV === 'production' && fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
 }
 
 // Routes
@@ -62,9 +65,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // SPA fallback - serve index.html for all non-API routes in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' && fs.existsSync(distPath)) {
   app.get('*', (req, res) => {
-    res.sendFile('../frontend/dist/index.html', { root: __dirname });
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
