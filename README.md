@@ -247,11 +247,10 @@ project/
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Frontend
 ```bash
 cd frontend
 npm run build
-# Deploy dist folder to Vercel
 ```
 
 ### Backend (Render)
