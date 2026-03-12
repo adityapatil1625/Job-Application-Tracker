@@ -11,9 +11,6 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Connect to MongoDB
-connectDB();
-
 // CORS configuration for production and development
 const devOrigins = ['http://localhost:3000', 'http://localhost:5173'];
 const envProdOrigins = process.env.FRONTEND_URL
@@ -105,8 +102,19 @@ const PORT = process.env.PORT || 5000;
 // Export app for external entry points
 module.exports = app;
 
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
+    });
+  } catch (error) {
+    console.error('❌ Startup failed: unable to initialize application');
+    process.exit(1);
+  }
+};
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+startServer();
