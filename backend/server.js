@@ -16,9 +16,21 @@ connectDB();
 
 // CORS configuration for production and development
 const devOrigins = ['http://localhost:3000', 'http://localhost:5173'];
-const prodOrigins = process.env.FRONTEND_URL
+const envProdOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map((url) => url.trim()).filter(Boolean)
-  : devOrigins;
+  : [];
+
+// Keep a safe production fallback so CORS works even if FRONTEND_URL is not set.
+const defaultProdOrigins = [
+  'https://job-application-tracker-ivory-one.vercel.app',
+  'https://job-application-tracker-9b8b.vercel.app'
+];
+
+const prodOrigins = [...new Set([...envProdOrigins, ...defaultProdOrigins])];
+
+const isAllowedVercelPreview = (origin) => {
+  return /^https:\/\/job-application-tracker-[a-z0-9-]+\.vercel\.app$/i.test(origin);
+};
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -33,6 +45,11 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow Vercel preview deployments for this project.
+    if (process.env.NODE_ENV === 'production' && isAllowedVercelPreview(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -41,6 +58,7 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
