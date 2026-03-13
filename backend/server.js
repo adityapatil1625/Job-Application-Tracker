@@ -102,9 +102,16 @@ const PORT = process.env.PORT || 5000;
 // Export app for external entry points
 module.exports = app;
 
+const isVercelRuntime = !!process.env.VERCEL;
+
 const startServer = async () => {
   try {
     await connectDB();
+
+    if (isVercelRuntime) {
+      console.log('✅ Serverless runtime initialized');
+      return;
+    }
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -112,7 +119,10 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('❌ Startup failed: unable to initialize application');
-    process.exit(1);
+
+    if (!isVercelRuntime) {
+      process.exit(1);
+    }
   }
 };
 

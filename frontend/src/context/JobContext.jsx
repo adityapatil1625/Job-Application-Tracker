@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
-import { useAuth } from './AuthContext'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -18,11 +17,8 @@ export const JobProvider = ({ children }) => {
   const [jobs, setJobs] = useState([])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(false)
-  const { token } = useAuth()
 
   const fetchJobs = async (filters = {}) => {
-    if (!token) return
-    
     setLoading(true)
     try {
       const params = new URLSearchParams(filters).toString()
@@ -36,8 +32,6 @@ export const JobProvider = ({ children }) => {
   }
 
   const fetchStats = async () => {
-    if (!token) return
-    
     try {
       const res = await axios.get('/api/jobs/stats')
       setStats(res.data.data)
@@ -67,11 +61,9 @@ export const JobProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    if (token) {
-      fetchJobs()
-      fetchStats()
-    }
-  }, [token])
+    fetchJobs()
+    fetchStats()
+  }, [])
 
   const value = {
     jobs,

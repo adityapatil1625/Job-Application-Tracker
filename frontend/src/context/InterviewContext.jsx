@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
-import { useAuth } from './AuthContext'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -18,11 +17,8 @@ export const InterviewProvider = ({ children }) => {
   const [interviews, setInterviews] = useState([])
   const [upcomingInterviews, setUpcomingInterviews] = useState([])
   const [loading, setLoading] = useState(false)
-  const { token } = useAuth()
 
   const fetchInterviews = async () => {
-    if (!token) return
-    
     setLoading(true)
     try {
       const res = await axios.get('/api/interviews')
@@ -35,8 +31,6 @@ export const InterviewProvider = ({ children }) => {
   }
 
   const fetchUpcomingInterviews = async () => {
-    if (!token) return
-    
     try {
       const res = await axios.get('/api/interviews/upcoming')
       setUpcomingInterviews(res.data.data)
@@ -66,11 +60,9 @@ export const InterviewProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    if (token) {
-      fetchInterviews()
-      fetchUpcomingInterviews()
-    }
-  }, [token])
+    fetchInterviews()
+    fetchUpcomingInterviews()
+  }, [])
 
   const value = {
     interviews,
