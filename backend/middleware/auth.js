@@ -1,45 +1,32 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const protect = async (req, res, next) => {
-  let token;
+const getOrCreateFixedUser = async () => {
+  const fixedUserEmail = process.env.FIXED_USER_EMAIL || 'guest@jobtracker.local';
+  const fixedUserName = process.env.FIXED_USER_NAME || 'Default User';
+  const fixedUserPassword = process.env.FIXED_USER_PASSWORD || process.env.JWT_SECRET || 'fixed-user-password-123';
 
-  // Check if token exists in headers
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // Get token from header
-      token = req.headers.authorization.split(' ')[1];
+  let user = await User.findOne({ email: fixedUserEmail });
 
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Get user from token (excluding password)
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      next();
-    } catch (error) {
-      console.error('Auth middleware error:', error);
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized, token failed'
-      });
-    }
+  if (!user) {
+    user = await User.create({
+      name: fixedUserName,
+      email: fixedUserEmail,
+      password: fixedUserPassword
+    });
   }
 
-  if (!token) {
-    return res.status(401).json({
+  return user;
+};
+
+const protect = async (req, res, next) => {
+  try {
+    req.user = await getOrCreateFixedUser();
+    return next();
+  } catch (error) {
+    console.error('Fixed user auth error:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Not authorized, no token'
+      message: 'Unable to initialize fixed user'
     });
   }
 };
