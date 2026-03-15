@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
-
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+import api from '../utils/api'
 
 const InterviewContext = createContext()
 
@@ -21,7 +19,7 @@ export const InterviewProvider = ({ children }) => {
   const fetchInterviews = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/interviews')
+      const res = await api.get('/api/interviews')
       setInterviews(res.data.data)
     } catch (error) {
       console.error('Fetch interviews error:', error)
@@ -32,7 +30,7 @@ export const InterviewProvider = ({ children }) => {
 
   const fetchUpcomingInterviews = async () => {
     try {
-      const res = await axios.get('/api/interviews/upcoming')
+      const res = await api.get('/api/interviews/upcoming')
       setUpcomingInterviews(res.data.data)
     } catch (error) {
       console.error('Fetch upcoming error:', error)
@@ -40,21 +38,21 @@ export const InterviewProvider = ({ children }) => {
   }
 
   const createInterview = async (interviewData) => {
-    const res = await axios.post('/api/interviews', interviewData)
+    const res = await api.post('/api/interviews', interviewData)
     setInterviews([...interviews, res.data.data])
     fetchUpcomingInterviews()
     return res.data
   }
 
   const updateInterview = async (id, interviewData) => {
-    const res = await axios.put(`/api/interviews/${id}`, interviewData)
+    const res = await api.put(`/api/interviews/${id}`, interviewData)
     setInterviews(interviews.map(i => i._id === id ? res.data.data : i))
     fetchUpcomingInterviews()
     return res.data
   }
 
   const deleteInterview = async (id) => {
-    await axios.delete(`/api/interviews/${id}`)
+    await api.delete(`/api/interviews/${id}`)
     setInterviews(interviews.filter(i => i._id !== id))
     fetchUpcomingInterviews()
   }

@@ -1,13 +1,13 @@
 import { useJobs } from '../context/JobContext'
 import { FiDownload, FiUpload } from 'react-icons/fi'
-import axios from 'axios'
+import api from '../utils/api'
 
 const ExportImport = () => {
   const { fetchJobs } = useJobs()
 
   const handleExportCSV = async () => {
     try {
-      const response = await axios.get('/api/jobs/export/csv', {
+      const response = await api.get('/api/jobs/export/csv', {
         responseType: 'blob'
       })
       
@@ -17,7 +17,7 @@ const ExportImport = () => {
       link.setAttribute('download', 'job-applications.csv')
       document.body.appendChild(link)
       link.click()
-      link.parentURL.removeChild(link)
+      document.body.removeChild(link)
     } catch (error) {
       console.error('Export error:', error)
       alert('Failed to export CSV')
@@ -32,7 +32,7 @@ const ExportImport = () => {
     formData.append('file', file)
 
     try {
-      await axios.post('/api/jobs/import/csv', formData, {
+      await api.post('/api/jobs/import/csv', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       alert('Jobs imported successfully!')

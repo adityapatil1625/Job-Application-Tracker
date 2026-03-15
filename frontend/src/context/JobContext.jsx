@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
-
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+import api from '../utils/api'
 
 const JobContext = createContext()
 
@@ -22,7 +20,7 @@ export const JobProvider = ({ children }) => {
     setLoading(true)
     try {
       const params = new URLSearchParams(filters).toString()
-      const res = await axios.get(`/api/jobs${params ? '?' + params : ''}`)
+      const res = await api.get(`/api/jobs${params ? '?' + params : ''}`)
       setJobs(res.data.data)
     } catch (error) {
       console.error('Fetch jobs error:', error)
@@ -33,7 +31,7 @@ export const JobProvider = ({ children }) => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('/api/jobs/stats')
+      const res = await api.get('/api/jobs/stats')
       setStats(res.data.data)
     } catch (error) {
       console.error('Fetch stats error:', error)
@@ -41,21 +39,21 @@ export const JobProvider = ({ children }) => {
   }
 
   const createJob = async (jobData) => {
-    const res = await axios.post('/api/jobs', jobData)
+    const res = await api.post('/api/jobs', jobData)
     setJobs([res.data.data, ...jobs])
     fetchStats()
     return res.data
   }
 
   const updateJob = async (id, jobData) => {
-    const res = await axios.put(`/api/jobs/${id}`, jobData)
+    const res = await api.put(`/api/jobs/${id}`, jobData)
     setJobs(jobs.map(job => job._id === id ? res.data.data : job))
     fetchStats()
     return res.data
   }
 
   const deleteJob = async (id) => {
-    await axios.delete(`/api/jobs/${id}`)
+    await api.delete(`/api/jobs/${id}`)
     setJobs(jobs.filter(job => job._id !== id))
     fetchStats()
   }
