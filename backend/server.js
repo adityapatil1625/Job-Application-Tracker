@@ -13,28 +13,23 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 // Initialize Express app
 const app = express();
 
-// CORS configuration for production and development
-const devOrigins = ['http://localhost:3000', 'http://localhost:5173'];
-const envProdOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim()).filter(Boolean)
+const localOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+const envOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim().replace(/\/+$/, '')).filter(Boolean)
   : [];
-
-// Keep a safe production fallback so CORS works even if FRONTEND_URL is not set.
-const defaultProdOrigins = [
+const defaultFrontendOrigins = [
+  'https://track-your-job-application.vercel.app',
   'https://job-application-tracker-ivory-one.vercel.app',
   'https://job-application-tracker-9b8b.vercel.app'
 ];
-
-const prodOrigins = [...new Set([...envProdOrigins, ...defaultProdOrigins])];
+const allowedOrigins = [...new Set([...localOrigins, ...envOrigins, ...defaultFrontendOrigins])];
 
 const isAllowedVercelPreview = (origin) => {
-  return /^https:\/\/job-application-tracker-[a-z0-9-]+\.vercel\.app$/i.test(origin);
+  return /\.vercel\.app$/i.test(origin);
 };
 
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = process.env.NODE_ENV === 'production' ? prodOrigins : devOrigins;
-
     // Allow non-browser clients or same-origin requests
     if (!origin) {
       return callback(null, true);
@@ -44,14 +39,16 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Allow Vercel preview deployments for this project.
-    if (process.env.NODE_ENV === 'production' && isAllowedVercelPreview(origin)) {
+    // Allow Vercel preview deployments and production frontends.
+    if (isAllowedVercelPreview(origin)) {
       return callback(null, true);
     }
 
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 
