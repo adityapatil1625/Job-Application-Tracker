@@ -46,6 +46,8 @@ const getTokenFromRequest = (req) => {
   return authHeader.split(' ')[1];
 };
 
+const isFixedUserAuthEnabled = () => process.env.ALLOW_FIXED_USER_AUTH === 'true';
+
 const protect = async (req, res, next) => {
   try {
     const token = getTokenFromRequest(req);
@@ -77,6 +79,13 @@ const protect = async (req, res, next) => {
           message: 'Invalid token'
         });
       }
+    }
+
+    if (!isFixedUserAuthEnabled()) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
     }
 
     req.user = await getOrCreateFixedUser();

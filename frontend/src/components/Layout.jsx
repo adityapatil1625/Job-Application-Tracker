@@ -1,9 +1,17 @@
-import { Outlet, NavLink } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-import { FiHome, FiBriefcase, FiTrello, FiCalendar, FiMoon, FiSun } from 'react-icons/fi'
+import { useAuth } from '../context/AuthContext'
+import { FiHome, FiBriefcase, FiTrello, FiCalendar, FiMoon, FiSun, FiLogOut } from 'react-icons/fi'
 
 const Layout = () => {
+  const navigate = useNavigate()
   const { isDarkMode, toggleDarkMode } = useTheme()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -66,11 +74,22 @@ const Layout = () => {
               </div>
 
               <div className="flex items-center space-x-4">
+                <div className="hidden md:block text-right">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{user?.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                </div>
                 <button
                   onClick={toggleDarkMode}
                   className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
                 >
                   {isDarkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                >
+                  <FiLogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             </div>

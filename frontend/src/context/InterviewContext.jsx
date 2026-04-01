@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../utils/api'
+import { useAuth } from './AuthContext'
 
 const InterviewContext = createContext()
 
@@ -12,6 +13,7 @@ export const useInterviews = () => {
 }
 
 export const InterviewProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth()
   const [interviews, setInterviews] = useState([])
   const [upcomingInterviews, setUpcomingInterviews] = useState([])
   const [loading, setLoading] = useState(false)
@@ -58,9 +60,16 @@ export const InterviewProvider = ({ children }) => {
   }
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setInterviews([])
+      setUpcomingInterviews([])
+      setLoading(false)
+      return
+    }
+
     fetchInterviews()
     fetchUpcomingInterviews()
-  }, [])
+  }, [isAuthenticated])
 
   const value = {
     interviews,

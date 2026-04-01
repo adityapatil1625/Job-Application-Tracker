@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../utils/api'
+import { useAuth } from './AuthContext'
 
 const JobContext = createContext()
 
@@ -12,6 +13,7 @@ export const useJobs = () => {
 }
 
 export const JobProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth()
   const [jobs, setJobs] = useState([])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(false)
@@ -59,9 +61,16 @@ export const JobProvider = ({ children }) => {
   }
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setJobs([])
+      setStats({})
+      setLoading(false)
+      return
+    }
+
     fetchJobs()
     fetchStats()
-  }, [])
+  }, [isAuthenticated])
 
   const value = {
     jobs,
