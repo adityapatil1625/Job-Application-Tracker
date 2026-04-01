@@ -1,12 +1,8 @@
 const { validationResult } = require('express-validator');
 const JobApplication = require('../models/JobApplication');
 
-// @desc    Create new job application
-// @route   POST /api/jobs
-// @access  Private
 const createJob = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -41,34 +37,14 @@ const createJob = async (req, res) => {
   }
 };
 
-// @desc    Get all job applications for user
-// @route   GET /api/jobs
-// @access  Private
 const getJobs = async (req, res) => {
   try {
     const { status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
-    // Build query
-    const query = { userId: req.user._id };
-
-    // Filter by status
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-
-    // Search by company or role
-    if (search) {
-      query.$or = [
-        { company: { $regex: search, $options: 'i' } },
-        { role: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Sort options
-    const sortOrder = order === 'desc' ? -1 : 1;
-    const sortOptions = { [sortBy]: sortOrder };
-
-    const jobs = await JobApplication.find(query).sort(sortOptions);
+    const jobs = await JobApplication.find(
+      { userId: req.user._id, status, search },
+      { sortBy, order }
+    );
 
     res.json({
       success: true,
@@ -84,9 +60,6 @@ const getJobs = async (req, res) => {
   }
 };
 
-// @desc    Get single job application
-// @route   GET /api/jobs/:id
-// @access  Private
 const getJob = async (req, res) => {
   try {
     const job = await JobApplication.findById(req.params.id);
@@ -98,8 +71,7 @@ const getJob = async (req, res) => {
       });
     }
 
-    // Make sure user owns this job application
-    if (job.userId.toString() !== req.user._id.toString()) {
+    if (job.userId !== String(req.user._id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to access this job application'
@@ -119,12 +91,8 @@ const getJob = async (req, res) => {
   }
 };
 
-// @desc    Update job application
-// @route   PUT /api/jobs/:id
-// @access  Private
 const updateJob = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -133,31 +101,23 @@ const updateJob = async (req, res) => {
       });
     }
 
-    let job = await JobApplication.findById(req.params.id);
+    const existingJob = await JobApplication.findById(req.params.id);
 
-    if (!job) {
+    if (!existingJob) {
       return res.status(404).json({
         success: false,
         message: 'Job application not found'
       });
     }
 
-    // Make sure user owns this job application
-    if (job.userId.toString() !== req.user._id.toString()) {
+    if (existingJob.userId !== String(req.user._id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this job application'
       });
     }
 
-    job = await JobApplication.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
+    const job = await JobApplication.findByIdAndUpdate(req.params.id, req.body);
 
     res.json({
       success: true,
@@ -172,9 +132,6 @@ const updateJob = async (req, res) => {
   }
 };
 
-// @desc    Delete job application
-// @route   DELETE /api/jobs/:id
-// @access  Private
 const deleteJob = async (req, res) => {
   try {
     const job = await JobApplication.findById(req.params.id);
@@ -186,15 +143,14 @@ const deleteJob = async (req, res) => {
       });
     }
 
-    // Make sure user owns this job application
-    if (job.userId.toString() !== req.user._id.toString()) {
+    if (job.userId !== String(req.user._id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this job application'
       });
     }
 
-    await job.deleteOne();
+    await JobApplication.deleteById(req.params.id);
 
     res.json({
       success: true,
@@ -209,37 +165,9 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// @desc    Get job application statistics
-// @route   GET /api/jobs/stats
-// @access  Private
 const getJobStats = async (req, res) => {
   try {
-    const stats = await JobApplication.aggregate([
-      {
-        $match: { userId: req.user._id }
-      },
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    // Transform to object format
-    const statsObject = {
-      total: 0,
-      Applied: 0,
-      OA: 0,
-      Interview: 0,
-      Offer: 0,
-      Rejected: 0
-    };
-
-    stats.forEach(stat => {
-      statsObject[stat._id] = stat.count;
-      statsObject.total += stat.count;
-    });
+    const statsObject = await JobApplication.getStatsByUser(req.user._id);
 
     res.json({
       success: true,

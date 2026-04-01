@@ -4,9 +4,11 @@ const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 const connectDB = require('./config/db');
+const { isDbConnected } = require('./config/db');
+const { requireDatabase } = require('./middleware/requireDatabase');
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Initialize Express app
 const app = express();
@@ -66,11 +68,19 @@ if (process.env.NODE_ENV === 'production' && fs.existsSync(distPath)) {
 }
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/jobs', require('./routes/jobRoutes'));
-app.use('/api/interviews', require('./routes/interviewRoutes'));
+app.use('/api/auth', requireDatabase, require('./routes/authRoutes'));
+app.use('/api/jobs', requireDatabase, require('./routes/jobRoutes'));
+app.use('/api/interviews', requireDatabase, require('./routes/interviewRoutes'));
 
 // Health check route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Job Application Tracker API',
+    version: '1.0.0',
+    status: 'Running'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     message: 'Job Application Tracker API',
@@ -98,32 +108,61 @@ app.use((err, req, res, next) => {
 
 // Start server (for local development)
 const PORT = process.env.PORT || 5000;
+const DB_RECONNECT_INTERVAL_MS = Number(process.env.DB_RECONNECT_INTERVAL_MS || 30000);
 
 // Export app for external entry points
 module.exports = app;
 
 const isVercelRuntime = !!process.env.VERCEL;
 
-const startServer = async () => {
-  try {
-    await connectDB();
+const startDbReconnectLoop = () => {
+  if (isVercelRuntime || process.env.REQUIRE_DB === 'true') {
+    return;
+  }
 
-    if (isVercelRuntime) {
-      console.log('✅ Serverless runtime initialized');
+  setInterval(async () => {
+    if (isDbConnected()) {
       return;
     }
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV}`);
-    });
-  } catch (error) {
-    console.error('❌ Startup failed: unable to initialize application');
+    try {
+      await connectDB();
+      console.log('✅ Database reconnected successfully');
+    } catch (error) {
+      console.log('⚠️ Database reconnect attempt failed');
+    }
+  }, DB_RECONNECT_INTERVAL_MS);
+};
 
-    if (!isVercelRuntime) {
+const startServer = async () => {
+  let dbConnected = false;
+
+  try {
+    await connectDB();
+    dbConnected = true;
+  } catch (error) {
+    console.error('⚠️ Startup warning: database connection is unavailable. API routes will return 503 until it reconnects.');
+
+    if (process.env.REQUIRE_DB === 'true' && !isVercelRuntime) {
+      console.error('❌ Startup failed: REQUIRE_DB is enabled and database is unavailable.');
       process.exit(1);
     }
   }
+
+  if (isVercelRuntime) {
+    console.log('✅ Serverless runtime initialized');
+    return;
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    if (!dbConnected) {
+      console.log('⚠️ Running in degraded mode until database connection is restored');
+    }
+  });
+
+  startDbReconnectLoop();
 };
 
 // Start server

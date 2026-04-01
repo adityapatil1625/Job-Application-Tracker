@@ -2,19 +2,14 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
 
-// Generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d'
   });
 };
 
-// @desc    Register new user
-// @route   POST /api/auth/register
-// @access  Public
 const register = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -24,9 +19,8 @@ const register = async (req, res) => {
     }
 
     const { name, email, password } = req.body;
-
-    // Check if user exists
     const userExists = await User.findOne({ email });
+
     if (userExists) {
       return res.status(400).json({
         success: false,
@@ -34,29 +28,21 @@ const register = async (req, res) => {
       });
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password
     });
 
-    if (user) {
-      res.status(201).json({
-        success: true,
-        data: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          token: generateToken(user._id)
-        }
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid user data'
-      });
-    }
+    res.status(201).json({
+      success: true,
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id)
+      }
+    });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({
@@ -66,12 +52,8 @@ const register = async (req, res) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 const login = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -81,12 +63,10 @@ const login = async (req, res) => {
     }
 
     const { email, password } = req.body;
+    const user = await User.findByEmail(email, { includePassword: true });
 
-    // Check for user (include password for comparison)
-    const user = await User.findOne({ email }).select('+password');
-
-    if (user && (await user.matchPassword(password))) {
-      res.json({
+    if (user && (await User.matchPassword(password, user.password))) {
+      return res.json({
         success: true,
         data: {
           _id: user._id,
@@ -95,12 +75,12 @@ const login = async (req, res) => {
           token: generateToken(user._id)
         }
       });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
     }
+
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid email or password'
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
@@ -110,9 +90,6 @@ const login = async (req, res) => {
   }
 };
 
-// @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);

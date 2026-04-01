@@ -1,50 +1,97 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { query } = require('../config/db');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please provide a name'],
-    trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters']
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide an email'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email'
-    ]
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+const serializeUser = (row, options = {}) => {
+  if (!row) {
+    return null;
   }
-}, {
-  timestamps: true
-});
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    next();
+  const user = {
+    _id: String(row.id),
+    name: row.name,
+    email: row.email,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+
+  if (options.includePassword) {
+    user.password = row.password;
   }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
 
-// Method to compare passwords
-userSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return user;
 };
 
-module.exports = mongoose.model('User', userSchema);
+const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+const toDbId = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) ? parsed : null;
+};
+
+class User {
+  static async create({ name, email, password }) {
+    const hashedPassword = await hashPassword(password);
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const { rows } = await query(
+      `
+        INSERT INTO users (name, email, password)
+        VALUES ($1, $2, $3)
+        RETURNING id, name, email, created_at, updated_at
+      `,
+      [name.trim(), normalizedEmail, hashedPassword]
+    );
+
+    return serializeUser(rows[0]);
+  }
+
+  static async findOne(criteria = {}, options = {}) {
+    if (criteria.email) {
+      return this.findByEmail(criteria.email, options);
+    }
+
+    return null;
+  }
+
+  static async findByEmail(email, options = {}) {
+    const { rows } = await query(
+      `
+        SELECT id, name, email, password, created_at, updated_at
+        FROM users
+        WHERE email = $1
+        LIMIT 1
+      `,
+      [email.trim().toLowerCase()]
+    );
+
+    return serializeUser(rows[0], { includePassword: options.includePassword });
+  }
+
+  static async findById(id, options = {}) {
+    const dbId = toDbId(id);
+    if (!dbId) {
+      return null;
+    }
+
+    const { rows } = await query(
+      `
+        SELECT id, name, email, password, created_at, updated_at
+        FROM users
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [dbId]
+    );
+
+    return serializeUser(rows[0], { includePassword: options.includePassword });
+  }
+
+  static async matchPassword(enteredPassword, hashedPassword) {
+    return bcrypt.compare(enteredPassword, hashedPassword);
+  }
+}
+
+module.exports = User;

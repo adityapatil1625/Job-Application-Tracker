@@ -1,11 +1,7 @@
 const { validationResult } = require('express-validator');
 const Interview = require('../models/Interview');
 const JobApplication = require('../models/JobApplication');
-const { sendInterviewReminder } = require('../utils/emailService');
 
-// @desc    Create interview
-// @route   POST /api/interviews
-// @access  Private
 const createInterview = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -17,10 +13,9 @@ const createInterview = async (req, res) => {
     }
 
     const { jobId, type, date, time, meetingLink, location, interviewer, notes } = req.body;
-
-    // Verify job exists and belongs to user
     const job = await JobApplication.findById(jobId);
-    if (!job || job.userId.toString() !== req.user._id.toString()) {
+
+    if (!job || job.userId !== String(req.user._id)) {
       return res.status(404).json({
         success: false,
         message: 'Job not found'
@@ -54,14 +49,9 @@ const createInterview = async (req, res) => {
   }
 };
 
-// @desc    Get all interviews
-// @route   GET /api/interviews
-// @access  Private
 const getInterviews = async (req, res) => {
   try {
-    const interviews = await Interview.find({ userId: req.user._id })
-      .sort({ date: 1 })
-      .populate('jobId');
+    const interviews = await Interview.findByUser(req.user._id);
 
     res.json({
       success: true,
@@ -77,19 +67,12 @@ const getInterviews = async (req, res) => {
   }
 };
 
-// @desc    Get upcoming interviews
-// @route   GET /api/interviews/upcoming
-// @access  Private
 const getUpcomingInterviews = async (req, res) => {
   try {
-    const now = new Date();
-    const interviews = await Interview.find({
-      userId: req.user._id,
-      date: { $gte: now }
-    })
-      .sort({ date: 1 })
-      .limit(10)
-      .populate('jobId');
+    const interviews = await Interview.findByUser(req.user._id, {
+      upcoming: true,
+      limit: 10
+    });
 
     res.json({
       success: true,
@@ -105,9 +88,6 @@ const getUpcomingInterviews = async (req, res) => {
   }
 };
 
-// @desc    Update interview
-// @route   PUT /api/interviews/:id
-// @access  Private
 const updateInterview = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -118,27 +98,39 @@ const updateInterview = async (req, res) => {
       });
     }
 
-    let interview = await Interview.findById(req.params.id);
+    const existingInterview = await Interview.findById(req.params.id);
 
-    if (!interview) {
+    if (!existingInterview) {
       return res.status(404).json({
         success: false,
         message: 'Interview not found'
       });
     }
 
-    if (interview.userId.toString() !== req.user._id.toString()) {
+    if (existingInterview.userId !== String(req.user._id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this interview'
       });
     }
 
-    interview = await Interview.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const updates = { ...req.body };
+
+    if (updates.jobId) {
+      const job = await JobApplication.findById(updates.jobId);
+
+      if (!job || job.userId !== String(req.user._id)) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found'
+        });
+      }
+
+      updates.company = job.company;
+      updates.role = job.role;
+    }
+
+    const interview = await Interview.findByIdAndUpdate(req.params.id, updates);
 
     res.json({
       success: true,
@@ -153,9 +145,6 @@ const updateInterview = async (req, res) => {
   }
 };
 
-// @desc    Delete interview
-// @route   DELETE /api/interviews/:id
-// @access  Private
 const deleteInterview = async (req, res) => {
   try {
     const interview = await Interview.findById(req.params.id);
@@ -167,14 +156,14 @@ const deleteInterview = async (req, res) => {
       });
     }
 
-    if (interview.userId.toString() !== req.user._id.toString()) {
+    if (interview.userId !== String(req.user._id)) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this interview'
       });
     }
 
-    await interview.deleteOne();
+    await Interview.deleteById(req.params.id);
 
     res.json({
       success: true,

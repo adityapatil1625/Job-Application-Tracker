@@ -16,7 +16,7 @@ A RESTful API for managing job applications with authentication and CRUD operati
 
 - Node.js
 - Express.js
-- MongoDB with Mongoose
+- Supabase Postgres
 - JWT for authentication
 - bcryptjs for password hashing
 - express-validator for input validation
@@ -31,10 +31,16 @@ npm install
 2. Create a `.env` file in the backend folder:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
+DATABASE_URL=postgresql://postgres.ollgdnurbdxihtrhbmqa:[YOUR-PASSWORD]@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
 JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development
+REQUIRE_DB=false
 ```
+
+Notes:
+- `REQUIRE_DB=false` (default recommended for local development) allows the API to start even if Postgres is temporarily unavailable. DB-backed routes return `503` until connection succeeds.
+- Set `REQUIRE_DB=true` if you want startup to fail fast when Postgres is not reachable.
+- Replace `[YOUR-PASSWORD]` in `DATABASE_URL` with your real Supabase database password.
 
 3. Start the server:
 ```bash
@@ -157,25 +163,29 @@ Response:
 ### User Model
 ```javascript
 {
-  name: String (required),
-  email: String (required, unique),
-  password: String (required, hashed),
-  createdAt: Date
+  id: bigint primary key,
+  name: String,
+  email: String (unique),
+  password: String (hashed),
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
 ### JobApplication Model
 ```javascript
 {
-  userId: ObjectId (ref: User),
-  company: String (required),
-  role: String (required),
+  id: bigint primary key,
+  userId: bigint (ref: User),
+  company: String,
+  role: String,
   link: String,
   location: String,
   appliedDate: Date,
   status: String (enum: Applied, OA, Interview, Offer, Rejected),
   notes: String,
-  createdAt: Date
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 

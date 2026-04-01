@@ -3,7 +3,7 @@ import { FiDownload, FiUpload } from 'react-icons/fi'
 import api from '../utils/api'
 
 const ExportImport = () => {
-  const { fetchJobs } = useJobs()
+  const { fetchJobs, fetchStats } = useJobs()
 
   const handleExportCSV = async () => {
     try {
@@ -37,6 +37,7 @@ const ExportImport = () => {
       })
       alert('Jobs imported successfully!')
       fetchJobs()
+      fetchStats()
     } catch (error) {
       console.error('Import error:', error)
       alert('Failed to import CSV')

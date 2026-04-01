@@ -1,12 +1,13 @@
 const { Parser } = require('json2csv');
+const { Readable } = require('stream');
 const JobApplication = require('../models/JobApplication');
 
-// @desc    Export jobs to CSV
-// @route   GET /api/jobs/export/csv
-// @access  Private
 const exportJobsToCSV = async (req, res) => {
   try {
-    const jobs = await JobApplication.find({ userId: req.user._id });
+    const jobs = await JobApplication.find(
+      { userId: req.user._id },
+      { sortBy: 'createdAt', order: 'desc' }
+    );
 
     if (jobs.length === 0) {
       return res.status(400).json({
@@ -31,9 +32,6 @@ const exportJobsToCSV = async (req, res) => {
   }
 };
 
-// @desc    Import jobs from CSV
-// @route   POST /api/jobs/import/csv
-// @access  Private
 const importJobsFromCSV = async (req, res) => {
   try {
     if (!req.file) {
@@ -44,10 +42,9 @@ const importJobsFromCSV = async (req, res) => {
     }
 
     const csv = require('csv-parser');
-    const fs = require('fs');
     const jobs = [];
 
-    fs.createReadStream(req.file.path)
+    Readable.from(req.file.buffer)
       .pipe(csv())
       .on('data', (row) => {
         jobs.push({
@@ -64,8 +61,7 @@ const importJobsFromCSV = async (req, res) => {
       .on('end', async () => {
         try {
           const result = await JobApplication.insertMany(jobs);
-          fs.unlinkSync(req.file.path); // Delete temp file
-          
+
           res.status(201).json({
             success: true,
             message: `Imported ${result.length} job applications`,
@@ -78,6 +74,13 @@ const importJobsFromCSV = async (req, res) => {
             error: error.message
           });
         }
+      })
+      .on('error', (error) => {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid CSV file',
+          error: error.message
+        });
       });
   } catch (error) {
     console.error('Import error:', error);
