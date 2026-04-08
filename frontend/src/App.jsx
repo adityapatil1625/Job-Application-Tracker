@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { JobProvider } from './context/JobContext'
 import { InterviewProvider } from './context/InterviewContext'
@@ -26,6 +27,7 @@ function AppShell() {
 function App() {
   return (
     <ThemeProvider>
+      <Toaster position="bottom-right" />
       <AuthProvider>
         <Router>
           <Routes>

@@ -37,13 +37,18 @@ const toDbId = (value) => {
 
 class JobApplication {
   static async create({ userId, company, role, link = '', location = '', appliedDate, status = 'Applied', notes = '' }) {
+    let reachedOa = false;
+    let reachedInterview = false;
+    if (['OA', 'Interview', 'Offer'].includes(status)) reachedOa = true;
+    if (['Interview', 'Offer'].includes(status)) reachedInterview = true;
+
     const { rows } = await query(
       `
-        INSERT INTO job_applications (user_id, company, role, link, location, applied_date, status, notes)
-        VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW()), $7, $8)
+        INSERT INTO job_applications (user_id, company, role, link, location, applied_date, status, notes, reached_oa, reached_interview)
+        VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW()), $7, $8, $9, $10)
         RETURNING *
       `,
-      [toDbId(userId), company.trim(), role.trim(), link || '', location || '', appliedDate || null, status || 'Applied', notes || '']
+      [toDbId(userId), company.trim(), role.trim(), link || '', location || '', appliedDate || null, status || 'Applied', notes || '', reachedOa, reachedInterview]
     );
 
     return serializeJob(rows[0]);
@@ -119,6 +124,17 @@ class JobApplication {
       }
     });
 
+    if (updates.status) {
+      if (['OA', 'Interview', 'Offer'].includes(updates.status)) {
+        values.push(true);
+        fields.push(`reached_oa = $${values.length}`);
+      }
+      if (['Interview', 'Offer'].includes(updates.status)) {
+        values.push(true);
+        fields.push(`reached_interview = $${values.length}`);
+      }
+    }
+
     if (!fields.length) {
       return this.findById(id);
     }
@@ -166,15 +182,20 @@ class JobApplication {
   static async getStatsByUser(userId) {
     const { rows } = await query(
       `
-        SELECT status, COUNT(*)::int AS count
+        SELECT 
+          COALESCE(COUNT(*)::int, 0) as "total",
+          COALESCE(COUNT(*) FILTER (WHERE status = 'Applied')::int, 0) as "Applied",
+          COALESCE(COUNT(*) FILTER (WHERE reached_oa = true OR status IN ('OA', 'Interview', 'Offer'))::int, 0) as "OA",
+          COALESCE(COUNT(*) FILTER (WHERE reached_interview = true OR status IN ('Interview', 'Offer'))::int, 0) as "Interview",
+          COALESCE(COUNT(*) FILTER (WHERE status = 'Offer')::int, 0) as "Offer",
+          COALESCE(COUNT(*) FILTER (WHERE status = 'Rejected')::int, 0) as "Rejected"
         FROM job_applications
         WHERE user_id = $1
-        GROUP BY status
       `,
       [toDbId(userId)]
     );
 
-    const statsObject = {
+    const statsObject = rows[0] || {
       total: 0,
       Applied: 0,
       OA: 0,
@@ -182,11 +203,6 @@ class JobApplication {
       Offer: 0,
       Rejected: 0
     };
-
-    rows.forEach((row) => {
-      statsObject[row.status] = row.count;
-      statsObject.total += row.count;
-    });
 
     return statsObject;
   }

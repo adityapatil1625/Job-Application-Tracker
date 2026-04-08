@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import api from '../utils/api'
 import { useAuth } from './AuthContext'
+import toast from 'react-hot-toast'
 
 const JobContext = createContext()
 
@@ -25,6 +26,7 @@ export const JobProvider = ({ children }) => {
       const res = await api.get(`/api/jobs${params ? '?' + params : ''}`)
       setJobs(res.data.data)
     } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch tracking data')
       console.error('Fetch jobs error:', error)
     } finally {
       setLoading(false)
@@ -41,23 +43,41 @@ export const JobProvider = ({ children }) => {
   }
 
   const createJob = async (jobData) => {
-    const res = await api.post('/api/jobs', jobData)
-    setJobs([res.data.data, ...jobs])
-    fetchStats()
-    return res.data
+    try {
+      const res = await api.post('/api/jobs', jobData)
+      setJobs([res.data.data, ...jobs])
+      fetchStats()
+      toast.success('Application tracked successfully!')
+      return res.data
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add application')
+      throw error
+    }
   }
 
   const updateJob = async (id, jobData) => {
-    const res = await api.put(`/api/jobs/${id}`, jobData)
-    setJobs(jobs.map(job => job._id === id ? res.data.data : job))
-    fetchStats()
-    return res.data
+    try {
+      const res = await api.put(`/api/jobs/${id}`, jobData)
+      setJobs((prevJobs) => prevJobs.map(job => job._id === id ? res.data.data : job))
+      fetchStats()
+      toast.success('Updated successfully')
+      return res.data
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update application')
+      throw error
+    }
   }
 
   const deleteJob = async (id) => {
-    await api.delete(`/api/jobs/${id}`)
-    setJobs(jobs.filter(job => job._id !== id))
-    fetchStats()
+    try {
+      await api.delete(`/api/jobs/${id}`)
+      setJobs((prevJobs) => prevJobs.filter(job => job._id !== id))
+      fetchStats()
+      toast.success('Application deleted')
+    } catch (error) {
+      toast.error('Failed to delete application')
+      throw error
+    }
   }
 
   useEffect(() => {

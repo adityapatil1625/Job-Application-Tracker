@@ -4,6 +4,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { useJobs } from '../context/JobContext'
 import JobModal from '../components/JobModal'
 import { FiPlus } from 'react-icons/fi'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const STATUSES = ['Applied', 'OA', 'Interview', 'Offer', 'Rejected']
 
@@ -17,22 +18,27 @@ const JobCard = ({ job, onEdit }) => {
   }))
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       ref={drag}
       onClick={() => onEdit(job)}
-      className={`bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 cursor-move hover:shadow-md dark:hover:shadow-lg transition ${
-        isDragging ? 'opacity-50' : ''
+      className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-move transition-colors ${
+        isDragging ? 'opacity-40 scale-105 shadow-xl ring-2 ring-blue-400 z-50 relative' : 'hover:shadow-md dark:hover:shadow-lg'
       }`}
     >
-      <h3 className="font-semibold text-gray-900 dark:text-white">{job.company}</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{job.role}</p>
+      <h3 className="font-semibold text-slate-900 dark:text-white truncate">{job.company}</h3>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 truncate">{job.role}</p>
       {job.location && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{job.location}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 truncate bg-slate-100 dark:bg-slate-900 inline-block px-2 py-1 rounded-md">{job.location}</p>
       )}
-      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <div className="text-xs text-slate-500 dark:text-slate-500 mt-3 font-medium">
         {new Date(job.appliedDate).toLocaleDateString()}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -56,20 +62,22 @@ const Column = ({ status, jobs, onDrop, onEdit }) => {
   return (
     <div
       ref={drop}
-      className={`flex-1 min-w-[280px] ${colors[status]} border-2 rounded-xl p-4 transition ${
-        isOver ? 'ring-2 ring-blue-500' : ''
+      className={`flex-1 min-w-[300px] border-2 rounded-2xl p-4 transition-all duration-300 ${colors[status]} ${
+        isOver ? 'ring-4 ring-offset-2 ring-blue-500/50 dark:ring-offset-slate-900 scale-[1.01] shadow-xl' : ''
       }`}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-bold text-gray-900 dark:text-white">{status}</h2>
-        <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded-full text-sm font-medium dark:text-gray-300">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase text-sm">{status}</h2>
+        <span className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm border border-slate-200/50 dark:border-slate-700/50">
           {jobs.length}
         </span>
       </div>
-      <div className="space-y-3 min-h-[200px]">
-        {jobs.map((job) => (
-          <JobCard key={job._id} job={job} onEdit={onEdit} />
-        ))}
+      <div className="space-y-4 min-h-[200px]">
+        <AnimatePresence>
+          {jobs.map((job) => (
+            <JobCard key={job._id} job={job} onEdit={onEdit} />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   )

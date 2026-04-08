@@ -65,6 +65,9 @@ const schemaSql = `
     ON interviews(user_id, date);
   CREATE INDEX IF NOT EXISTS idx_interviews_date
     ON interviews(date);
+
+  ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS reached_oa BOOLEAN DEFAULT FALSE;
+  ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS reached_interview BOOLEAN DEFAULT FALSE;
 `;
 
 const getConnectionString = () =>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useJobs } from '../context/JobContext'
-import { FiX } from 'react-icons/fi'
+import { FiX, FiZap } from 'react-icons/fi'
+import toast from 'react-hot-toast'
 
 const JobModal = ({ job, onClose }) => {
   const { createJob, updateJob } = useJobs()
@@ -30,6 +31,43 @@ const JobModal = ({ job, onClose }) => {
       })
     }
   }, [job])
+
+  useEffect(() => {
+    // Magic Auto-Fill: Try to extract company name from ATS/Job Board URLs
+    if (!formData.link || job || formData.company) return; // Only auto-fill for new apps, if link provided, and company is empty
+
+    const url = formData.link.toLowerCase();
+    let detectedCompany = '';
+    let fromPlatform = '';
+    
+    try {
+      if (url.includes('internshala.com/internship')) {
+        const match = url.match(/-at-([a-z0-9-]+)(?:\d{5,})/);
+        if (match) detectedCompany = match[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        fromPlatform = 'Internshala';
+      } else if (url.includes('greenhouse.io') || url.includes('lever.co') || url.includes('ashbyhq.com')) {
+        const match = url.match(/(?:boards\.greenhouse\.io|jobs\.lever\.co|boards\.ashbyhq\.com|jobs\.ashbyhq\.com)\/([a-z0-9-]+)/);
+        if (match) detectedCompany = match[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        fromPlatform = 'ATS Board';
+      } else if (url.includes('wellfound.com') || url.includes('angel.co')) {
+        const match = url.match(/company\/([a-z0-9-]+)/);
+        if (match) detectedCompany = match[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        fromPlatform = 'Wellfound';
+      } else if (url.includes('workaday.com') || url.includes('myworkdayjobs.com')) {
+        // e.g., company.myworkdayjobs.com
+        const match = url.match(/:\/\/([a-z0-9-]+)\.myworkdayjobs\.com/);
+        if (match) detectedCompany = match[1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        fromPlatform = 'Workday';
+      }
+      
+      if (detectedCompany) {
+        setFormData(prev => ({ ...prev, company: detectedCompany }));
+        toast.success(`✨ Magic Auto-filled: ${detectedCompany} via ${fromPlatform}`, { icon: '✨' });
+      }
+    } catch (e) {
+      console.log('Error parsing URL:', e);
+    }
+  }, [formData.link, job, formData.company])
 
   const handleChange = (e) => {
     setFormData({
@@ -61,8 +99,9 @@ const JobModal = ({ job, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             {job ? 'Edit Application' : 'Add New Application'}
+            {!job && <FiZap className="text-blue-500 w-5 h-5 ml-1 animate-pulse" title="Magic Auto-Fill Enabled" />}
           </h2>
           <button
             onClick={onClose}
@@ -112,9 +151,10 @@ const JobModal = ({ job, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Job Link
-            </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center justify-between">
+                <span>Job Link</span>
+                <span className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1"><FiZap /> Paste to auto-fill</span>
+              </label>
             <input
               type="url"
               name="link"
