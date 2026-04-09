@@ -45,16 +45,16 @@ const ExportImport = () => {
   }
 
   return (
-    <div className="flex space-x-2">
+    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <button
         onClick={handleExportCSV}
-        className="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center space-x-2"
+        className="w-full sm:w-auto px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center justify-center space-x-2"
       >
         <FiDownload className="w-5 h-5" />
         <span>Export CSV</span>
       </button>
       
-      <label className="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center space-x-2 cursor-pointer">
+      <label className="w-full sm:w-auto px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center justify-center space-x-2 cursor-pointer">
         <FiUpload className="w-5 h-5" />
         <span>Import CSV</span>
         <input

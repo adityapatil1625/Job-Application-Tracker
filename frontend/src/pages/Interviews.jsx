@@ -31,15 +31,15 @@ const Interviews = () => {
   const sortedInterviews = [...interviews].sort((a, b) => new Date(a.date) - new Date(b.date))
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Interview Schedule</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Interview Schedule</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Plan and track your interviews</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          className="w-full sm:w-auto bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 tap-target"
         >
           <FiPlus className="w-5 h-5" />
           <span>Schedule Interview</span>
@@ -54,10 +54,10 @@ const Interviews = () => {
       ) : (
         <div className="space-y-4">
           {sortedInterviews.map((interview) => (
-            <div key={interview._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md dark:hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
-              <div className="flex items-start justify-between">
+            <div key={interview._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md dark:hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col gap-4">
                 <div className="flex-1">
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">{interview.company}</h3>
                       <p className="text-gray-600 dark:text-gray-400">{interview.role}</p>
@@ -65,7 +65,7 @@ const Interviews = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
@@ -110,16 +110,16 @@ const Interviews = () => {
                   )}
                 </div>
 
-                <div className="flex items-center space-x-2 ml-4">
+                <div className="flex items-center space-x-2 self-end sm:self-start sm:ml-auto">
                   <button
                     onClick={() => handleEdit(interview)}
-                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition"
+                    className="p-2.5 tap-target text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition"
                   >
                     <FiEdit2 className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(interview._id)}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
+                    className="p-2.5 tap-target text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
                   >
                     <FiTrash2 className="w-5 h-5" />
                   </button>

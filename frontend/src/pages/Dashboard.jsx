@@ -23,10 +23,10 @@ const Dashboard = () => {
   ]
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Track your job application progress</p>
         </div>
         <ExportImport />
@@ -38,7 +38,7 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <div key={index} className="card dark:bg-gray-800 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition">
+          <div key={index} className="card p-4 sm:p-6 dark:bg-gray-800 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p>
@@ -56,19 +56,19 @@ const Dashboard = () => {
       <AnalyticsCharts />
 
       {/* Recent Applications */}
-      <div className="card dark:bg-gray-800 dark:border-gray-700">
+      <div className="card p-4 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Applications</h2>
         {recentJobs.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">No applications yet. Start adding some!</p>
         ) : (
           <div className="space-y-3">
             {recentJobs.map((job) => (
-              <div key={job._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+              <div key={job._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 dark:text-white">{job.company}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{job.role}</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date(job.appliedDate).toLocaleDateString()}
                   </span>

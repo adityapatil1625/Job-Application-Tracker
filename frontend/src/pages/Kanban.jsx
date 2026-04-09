@@ -26,17 +26,19 @@ const JobCard = ({ job, onEdit }) => {
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       ref={drag}
       onClick={() => onEdit(job)}
-      className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-move transition-colors ${
+      className={`h-32 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-move transition-colors ${
         isDragging ? 'opacity-40 scale-105 shadow-xl ring-2 ring-blue-400 z-50 relative' : 'hover:shadow-md dark:hover:shadow-lg'
       }`}
     >
-      <h3 className="font-semibold text-slate-900 dark:text-white truncate">{job.company}</h3>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 truncate">{job.role}</p>
-      {job.location && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 truncate bg-slate-100 dark:bg-slate-900 inline-block px-2 py-1 rounded-md">{job.location}</p>
-      )}
-      <div className="text-xs text-slate-500 dark:text-slate-500 mt-3 font-medium">
-        {new Date(job.appliedDate).toLocaleDateString()}
+      <div className="h-full flex flex-col">
+        <h3 className="font-semibold text-slate-900 dark:text-white truncate">{job.company}</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 truncate">{job.role}</p>
+        {job.location && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 truncate bg-slate-100 dark:bg-slate-900 inline-block px-2 py-1 rounded-md max-w-full">{job.location}</p>
+        )}
+        <div className="text-xs text-slate-500 dark:text-slate-500 mt-auto pt-2 font-medium">
+          {new Date(job.appliedDate).toLocaleDateString()}
+        </div>
       </div>
     </motion.div>
   )
@@ -62,7 +64,7 @@ const Column = ({ status, jobs, onDrop, onEdit }) => {
   return (
     <div
       ref={drop}
-      className={`flex-1 min-w-[300px] border-2 rounded-2xl p-4 transition-all duration-300 ${colors[status]} ${
+      className={`flex-1 min-w-[85vw] sm:min-w-[320px] lg:min-w-[280px] h-[70vh] max-h-[700px] border-2 rounded-2xl p-4 transition-all duration-300 snap-start flex flex-col ${colors[status]} ${
         isOver ? 'ring-4 ring-offset-2 ring-blue-500/50 dark:ring-offset-slate-900 scale-[1.01] shadow-xl' : ''
       }`}
     >
@@ -72,7 +74,7 @@ const Column = ({ status, jobs, onDrop, onEdit }) => {
           {jobs.length}
         </span>
       </div>
-      <div className="space-y-4 min-h-[200px]">
+      <div className="space-y-4 flex-1 overflow-y-auto pr-1">
         <AnimatePresence>
           {jobs.map((job) => (
             <JobCard key={job._id} job={job} onEdit={onEdit} />
@@ -111,22 +113,22 @@ const Kanban = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-5 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Kanban Board</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Kanban Board</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">Drag and drop to update status</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+            className="w-full sm:w-auto bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 tap-target"
           >
             <FiPlus className="w-5 h-5" />
             <span>Add Application</span>
           </button>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
           {STATUSES.map((status) => (
             <Column
               key={status}

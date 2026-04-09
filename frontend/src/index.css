@@ -63,4 +63,13 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
   }
+
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mobile-safe-bottom {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
 }

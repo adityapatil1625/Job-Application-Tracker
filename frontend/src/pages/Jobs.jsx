@@ -103,23 +103,23 @@ const Jobs = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Job Applications</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Job Applications</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all your applications</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          className="w-full sm:w-auto bg-blue-600 dark:bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-700 px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 tap-target"
         >
           <FiPlus className="w-5 h-5" />
-          <span>Add Application</span>
+          <span className="sm:inline">Add Application</span>
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -128,15 +128,15 @@ const Jobs = () => {
               placeholder="Search by company or role..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full md:w-auto">
             <FiFilter className="text-gray-400 w-5 h-5" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-48"
             >
               <option value="all">All Status</option>
               <option value="Applied">Applied</option>
@@ -161,10 +161,10 @@ const Jobs = () => {
       ) : (
         <div className="grid gap-4">
           {jobs.map((job) => (
-            <div key={job._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md dark:hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
-              <div className="flex items-start justify-between">
+            <div key={job._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md dark:hover:shadow-lg transition border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col gap-4">
                 <div className="flex-1">
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">{job.company}</h3>
                       <p className="text-gray-600 dark:text-gray-400 mt-1">{job.role}</p>
@@ -172,7 +172,7 @@ const Jobs = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{job.location}</p>
                       )}
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center self-start sm:self-auto">
                       <CustomStatusDropdown job={job} handleStatusChange={handleStatusChange} />
                     </div>
                   </div>
@@ -181,7 +181,7 @@ const Jobs = () => {
                     <p className="text-gray-600 dark:text-gray-400 mt-3 text-sm">{job.notes}</p>
                   )}
                   
-                  <div className="flex items-center gap-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
                     <span>Applied: {new Date(job.appliedDate).toLocaleDateString()}</span>
                     {job.link && (
                       <a
@@ -196,16 +196,16 @@ const Jobs = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 ml-4">
+                <div className="flex items-center space-x-2 self-end sm:self-start sm:ml-auto">
                   <button
                     onClick={() => handleEdit(job)}
-                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition"
+                    className="p-2.5 tap-target text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition"
                   >
                     <FiEdit2 className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(job._id)}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
+                    className="p-2.5 tap-target text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition"
                   >
                     <FiTrash2 className="w-5 h-5" />
                   </button>
