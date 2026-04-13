@@ -56,6 +56,14 @@ export const JobProvider = ({ children }) => {
   }
 
   const updateJob = async (id, jobData) => {
+    let previousJobs = null
+
+    // Optimistic UI: reflect edits immediately, then reconcile with server response.
+    setJobs((prevJobs) => {
+      previousJobs = prevJobs
+      return prevJobs.map((job) => (job._id === id ? { ...job, ...jobData } : job))
+    })
+
     try {
       const res = await api.put(`/api/jobs/${id}`, jobData)
       setJobs((prevJobs) => prevJobs.map(job => job._id === id ? res.data.data : job))
@@ -63,6 +71,9 @@ export const JobProvider = ({ children }) => {
       toast.success('Updated successfully')
       return res.data
     } catch (error) {
+      if (previousJobs) {
+        setJobs(previousJobs)
+      }
       toast.error(error.response?.data?.message || 'Failed to update application')
       throw error
     }

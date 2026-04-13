@@ -50,9 +50,9 @@ const CustomStatusDropdown = ({ job, handleStatusChange }) => {
             {statuses.map(s => (
               <button
                 key={s}
-                onClick={async () => {
+                onClick={() => {
                   setIsOpen(false)
-                  await handleStatusChange(job, s)
+                  handleStatusChange(job, s)
                 }}
                 className={`px-4 py-2 text-sm font-medium text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${s === job.status ? 'bg-slate-50 dark:bg-slate-700/50 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
               >
@@ -122,6 +122,10 @@ const Jobs = () => {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-3">
+          <FiFilter className="text-gray-400 w-4 h-4" />
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Filters</span>
+        </div>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -133,12 +137,13 @@ const Jobs = () => {
               className="w-full pl-10 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex items-center space-x-2 w-full md:w-auto">
-            <FiFilter className="text-gray-400 w-5 h-5" />
+          <div className="w-full md:w-52">
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Status</label>
+            <div className="relative">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-48"
+                className="appearance-none px-4 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
             >
               <option value="all">All Status</option>
               <option value="Applied">Applied</option>
@@ -147,19 +152,24 @@ const Jobs = () => {
               <option value="Offer">Offer</option>
               <option value="Rejected">Rejected</option>
             </select>
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-          <div className="flex items-center space-x-2 w-full md:w-auto">
-            <FiFilter className="text-gray-400 w-5 h-5" />
+          <div className="w-full md:w-56">
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Work Mode</label>
+            <div className="relative">
             <select
               value={workModeFilter}
               onChange={(e) => setWorkModeFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-56"
+                className="appearance-none px-4 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
             >
               <option value="all">All Work Modes</option>
               <option value="Hybrid">Hybrid</option>
-              <option value="Work From Home">WFH</option>
+              <option value="Work From Home">Work From Home</option>
               <option value="In Office">In Office</option>
             </select>
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
