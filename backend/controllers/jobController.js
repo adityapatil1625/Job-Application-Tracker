@@ -11,7 +11,7 @@ const createJob = async (req, res) => {
       });
     }
 
-    const { company, role, link, location, appliedDate, status, notes } = req.body;
+    const { company, role, link, location, workMode, appliedDate, status, notes } = req.body;
 
     const job = await JobApplication.create({
       userId: req.user._id,
@@ -19,6 +19,7 @@ const createJob = async (req, res) => {
       role,
       link,
       location,
+      workMode,
       appliedDate,
       status,
       notes
@@ -39,10 +40,10 @@ const createJob = async (req, res) => {
 
 const getJobs = async (req, res) => {
   try {
-    const { status, search, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { status, workMode, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
     const jobs = await JobApplication.find(
-      { userId: req.user._id, status, search },
+      { userId: req.user._id, status, workMode, search },
       { sortBy, order }
     );
 

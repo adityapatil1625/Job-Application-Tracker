@@ -16,7 +16,7 @@ const exportJobsToCSV = async (req, res) => {
       });
     }
 
-    const fields = ['company', 'role', 'location', 'appliedDate', 'status', 'notes', 'link'];
+    const fields = ['company', 'role', 'location', 'workMode', 'appliedDate', 'status', 'notes', 'link'];
     const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(jobs);
 
@@ -52,6 +52,7 @@ const importJobsFromCSV = async (req, res) => {
           company: row.company,
           role: row.role,
           location: row.location,
+          workMode: row.workMode || row.work_mode || '',
           appliedDate: row.appliedDate || new Date(),
           status: row.status || 'Applied',
           notes: row.notes || '',

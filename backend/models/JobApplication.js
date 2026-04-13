@@ -7,7 +7,8 @@ const SORT_COLUMNS = {
   company: 'company',
   role: 'role',
   status: 'status',
-  location: 'location'
+  location: 'location',
+  workMode: 'work_mode'
 };
 
 const serializeJob = (row) => {
@@ -22,6 +23,7 @@ const serializeJob = (row) => {
     role: row.role,
     link: row.link,
     location: row.location,
+    workMode: row.work_mode,
     appliedDate: row.applied_date,
     status: row.status,
     notes: row.notes,
@@ -36,7 +38,7 @@ const toDbId = (value) => {
 };
 
 class JobApplication {
-  static async create({ userId, company, role, link = '', location = '', appliedDate, status = 'Applied', notes = '' }) {
+  static async create({ userId, company, role, link = '', location = '', workMode = '', appliedDate, status = 'Applied', notes = '' }) {
     let reachedOa = false;
     let reachedInterview = false;
     if (['OA', 'Interview', 'Offer'].includes(status)) reachedOa = true;
@@ -44,11 +46,11 @@ class JobApplication {
 
     const { rows } = await query(
       `
-        INSERT INTO job_applications (user_id, company, role, link, location, applied_date, status, notes, reached_oa, reached_interview)
-        VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW()), $7, $8, $9, $10)
+        INSERT INTO job_applications (user_id, company, role, link, location, work_mode, applied_date, status, notes, reached_oa, reached_interview)
+        VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, NOW()), $8, $9, $10, $11)
         RETURNING *
       `,
-      [toDbId(userId), company.trim(), role.trim(), link || '', location || '', appliedDate || null, status || 'Applied', notes || '', reachedOa, reachedInterview]
+      [toDbId(userId), company.trim(), role.trim(), link || '', location || '', workMode || '', appliedDate || null, status || 'Applied', notes || '', reachedOa, reachedInterview]
     );
 
     return serializeJob(rows[0]);
@@ -82,6 +84,11 @@ class JobApplication {
       filters.push(`status = $${values.length}`);
     }
 
+    if (queryOptions.workMode && queryOptions.workMode !== 'all') {
+      values.push(queryOptions.workMode);
+      filters.push(`work_mode = $${values.length}`);
+    }
+
     if (queryOptions.search) {
       values.push(`%${queryOptions.search}%`);
       filters.push(`(company ILIKE $${values.length} OR role ILIKE $${values.length})`);
@@ -112,6 +119,7 @@ class JobApplication {
       role: 'role',
       link: 'link',
       location: 'location',
+      workMode: 'work_mode',
       appliedDate: 'applied_date',
       status: 'status',
       notes: 'notes'

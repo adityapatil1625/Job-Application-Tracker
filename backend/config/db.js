@@ -27,6 +27,7 @@ const schemaSql = `
     role VARCHAR(100) NOT NULL,
     link TEXT NOT NULL DEFAULT '',
     location VARCHAR(100) NOT NULL DEFAULT '',
+    work_mode VARCHAR(30) NOT NULL DEFAULT '',
     applied_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     status VARCHAR(20) NOT NULL DEFAULT 'Applied',
     notes TEXT NOT NULL DEFAULT '',
@@ -68,6 +69,7 @@ const schemaSql = `
 
   ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS reached_oa BOOLEAN DEFAULT FALSE;
   ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS reached_interview BOOLEAN DEFAULT FALSE;
+  ALTER TABLE job_applications ADD COLUMN IF NOT EXISTS work_mode VARCHAR(30) NOT NULL DEFAULT '';
 `;
 
 const getConnectionString = () =>

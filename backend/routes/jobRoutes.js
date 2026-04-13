@@ -27,6 +27,10 @@ const upload = multer({
 const jobValidation = [
   body('company').trim().notEmpty().withMessage('Company name is required'),
   body('role').trim().notEmpty().withMessage('Role is required'),
+  body('workMode')
+    .optional({ values: 'falsy' })
+    .isIn(['Hybrid', 'Work From Home', 'In Office'])
+    .withMessage('Invalid work mode'),
   body('status')
     .optional()
     .isIn(['Applied', 'OA', 'Interview', 'Offer', 'Rejected'])

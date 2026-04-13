@@ -36,6 +36,9 @@ const JobCard = ({ job, onEdit }) => {
         {job.location && (
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 truncate bg-slate-100 dark:bg-slate-900 inline-block px-2 py-1 rounded-md max-w-full">{job.location}</p>
         )}
+        {job.workMode && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 truncate bg-slate-100 dark:bg-slate-900 inline-block px-2 py-1 rounded-md max-w-full">{job.workMode}</p>
+        )}
         <div className="text-xs text-slate-500 dark:text-slate-500 mt-auto pt-2 font-medium">
           {new Date(job.appliedDate).toLocaleDateString()}
         </div>
