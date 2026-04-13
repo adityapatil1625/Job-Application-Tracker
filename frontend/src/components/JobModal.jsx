@@ -1,7 +1,135 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useJobs } from '../context/JobContext'
-import { FiX, FiZap } from 'react-icons/fi'
+import { FiX, FiZap, FiChevronDown } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+
+const CustomFormDropdown = ({ label, name, value, options, required = false, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selected = options.find((option) => option.value === value)
+
+  return (
+    <div ref={dropdownRef}>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {label}{required ? ' *' : ''}
+      </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 flex items-center justify-between"
+      >
+        <span className={selected ? '' : 'text-gray-500 dark:text-gray-400'}>
+          {selected ? selected.label : 'Select an option'}
+        </span>
+        <FiChevronDown className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="mt-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-lg overflow-hidden">
+          {options.map((option) => (
+            <button
+              key={option.value || '__empty'}
+              type="button"
+              onClick={() => {
+                onChange({ target: { name, value: option.value } })
+                setIsOpen(false)
+              }}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                option.value === value
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const WORK_MODE_STYLES = {
+  '': 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 ring-gray-300 dark:ring-gray-600',
+  Hybrid: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 ring-indigo-300 dark:ring-indigo-700',
+  'Work From Home': 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 ring-emerald-300 dark:ring-emerald-700',
+  'In Office': 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 ring-amber-300 dark:ring-amber-700'
+}
+
+const WorkModeDropdown = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const options = [
+    { value: '', label: 'Select work mode' },
+    { value: 'Hybrid', label: 'Hybrid' },
+    { value: 'Work From Home', label: 'Work From Home' },
+    { value: 'In Office', label: 'In Office' }
+  ]
+
+  const selected = options.find((option) => option.value === value)
+
+  return (
+    <div ref={dropdownRef}>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Work Mode
+      </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`w-full px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-between ring-1 transition-all hover:opacity-90 ${WORK_MODE_STYLES[value || '']}`}
+      >
+        <span>{selected ? selected.label : 'Select work mode'}</span>
+        <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="mt-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-xl overflow-hidden">
+          {options.map((option) => (
+            <button
+              key={option.value || '__empty'}
+              type="button"
+              onClick={() => {
+                onChange({ target: { name: 'workMode', value: option.value } })
+                setIsOpen(false)
+              }}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                option.value === value
+                  ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const JobModal = ({ job, onClose }) => {
   const { createJob, updateJob } = useJobs()
@@ -183,20 +311,10 @@ const JobModal = ({ job, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Work Mode
-              </label>
-              <select
-                name="workMode"
+              <WorkModeDropdown
                 value={formData.workMode}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-              >
-                <option value="">Select work mode</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="Work From Home">Work From Home</option>
-                <option value="In Office">In Office</option>
-              </select>
+              />
             </div>
 
             <div>
@@ -215,22 +333,20 @@ const JobModal = ({ job, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Status *
-            </label>
-            <select
+            <CustomFormDropdown
+              label="Status"
               name="status"
-              required
               value={formData.status}
+              required
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-            >
-              <option value="Applied">Applied</option>
-              <option value="OA">OA</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+              options={[
+                { value: 'Applied', label: 'Applied' },
+                { value: 'OA', label: 'OA' },
+                { value: 'Interview', label: 'Interview' },
+                { value: 'Offer', label: 'Offer' },
+                { value: 'Rejected', label: 'Rejected' }
+              ]}
+            />
           </div>
 
           <div>

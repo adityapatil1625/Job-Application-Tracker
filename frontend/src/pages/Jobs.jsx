@@ -66,6 +66,68 @@ const CustomStatusDropdown = ({ job, handleStatusChange }) => {
   )
 }
 
+const FilterDropdown = ({ label, value, options, onSelect, widthClass }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selected = options.find((option) => option.value === value)
+
+  return (
+    <div className={`relative w-full ${widthClass}`} ref={dropdownRef}>
+      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
+      >
+        <span className="text-sm">{selected ? selected.label : 'Select'}</span>
+        <FiChevronDown className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.12 }}
+            className="absolute left-0 mt-2 z-50 w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 shadow-xl overflow-hidden"
+          >
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onSelect(option.value)
+                  setIsOpen(false)
+                }}
+                className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                  option.value === value
+                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 const Jobs = () => {
   const { jobs, loading, fetchJobs, deleteJob, updateJob } = useJobs()
   const [showModal, setShowModal] = useState(false)
@@ -137,40 +199,32 @@ const Jobs = () => {
               className="w-full pl-10 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="w-full md:w-52">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Status</label>
-            <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none px-4 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-            >
-              <option value="all">All Status</option>
-              <option value="Applied">Applied</option>
-              <option value="OA">OA</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-          <div className="w-full md:w-56">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Work Mode</label>
-            <div className="relative">
-            <select
-              value={workModeFilter}
-              onChange={(e) => setWorkModeFilter(e.target.value)}
-                className="appearance-none px-4 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-            >
-              <option value="all">All Work Modes</option>
-              <option value="Hybrid">Hybrid</option>
-              <option value="Work From Home">Work From Home</option>
-              <option value="In Office">In Office</option>
-            </select>
-              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
+          <FilterDropdown
+            label="Status"
+            value={statusFilter}
+            onSelect={setStatusFilter}
+            widthClass="md:w-52"
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'Applied', label: 'Applied' },
+              { value: 'OA', label: 'OA' },
+              { value: 'Interview', label: 'Interview' },
+              { value: 'Offer', label: 'Offer' },
+              { value: 'Rejected', label: 'Rejected' }
+            ]}
+          />
+          <FilterDropdown
+            label="Work Mode"
+            value={workModeFilter}
+            onSelect={setWorkModeFilter}
+            widthClass="md:w-56"
+            options={[
+              { value: 'all', label: 'All Work Modes' },
+              { value: 'Hybrid', label: 'Hybrid' },
+              { value: 'Work From Home', label: 'Work From Home' },
+              { value: 'In Office', label: 'In Office' }
+            ]}
+          />
         </div>
       </div>
 
